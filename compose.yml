@@ -1,0 +1,40 @@
+services:
+  api-ok: &api-service
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - USE_BAD_REGEX=false
+      - PORT=3001
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+  api-not-ok:
+    <<: *api-service
+    ports:
+      - "3002:3002"
+    environment:
+      - USE_BAD_REGEX=true
+      - PORT=3002
+  load-test-ok:
+    image: peterevans/vegeta:6.9.1
+    depends_on:
+      api-ok:
+        condition: service_started
+    command: sh -c "echo 'GET http://api-ok:3001/slugs?url=url/url/url/url/url/url/url/url/url/url/url/url/url/url/url/url/url/url/url!' | vegeta attack -rate=100 -duration=30s | tee results.bin | vegeta report"
+  load-test-not-ok:
+    image: peterevans/vegeta:6.9.1
+    depends_on:
+      api-not-ok:
+        condition: service_started
+    command: sh -c "echo 'GET http://api-not-ok:3002/slugs?url=url/url/url/url/url/url/url/url/url/url/url/url/url/url/url/url/url/url/url!' | vegeta attack -rate=100 -duration=30s | tee results.bin | vegeta report"
+  monitor:
+    image: docker
+    entrypoint: sh -c "while true; do docker stats --no-stream --format 'table {{.Name}} \\t CPU Usage - {{.CPUPerc}}' | grep -E 'api-ok|api-not-ok'; sleep 5; done"
+    depends_on:
+      - api-ok
+      - api-not-ok
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
