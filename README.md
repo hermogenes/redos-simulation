@@ -2,6 +2,8 @@
 
 This repository contains the code for the simulation of the [redos vulnerability](https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS) in a simple Node web application.
 
+[Post original em portugues](https://dev.to/hermogenes/como-um-regex-pode-derrubar-o-seu-servidor-4pj6).
+
 ## Requirements
 
 - Node.js v22
